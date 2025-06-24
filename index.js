@@ -4,18 +4,28 @@ import fs from "fs/promises";
 async function handleDynamicUberPage() {
 
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         executablePath: '/usr/bin/google-chrome',
-        slowMo: 300,
+        //slowMo: 300,
     })
 
     const page = await browser.newPage();
 
     await page.goto("https://www.uber.com/global/en/eligible-vehicles/?city=bahia-blanca");
 
+    const headers = await page.$$('div[data-testid="accordion-header"]');
+    for (const header of headers) {
+    await header.click();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    await page.waitForSelector('div[data-testid="markdown-wrapper"] li b');
+
+
+
     const result = await page.evaluate(() => {
 
-        /*function parsePlansGrouped(text) {
+        function parsePlansGrouped(text) {
         const entries = text.split("/").map((e) => e.trim());
         const grouped = [];
 
@@ -30,24 +40,26 @@ async function handleDynamicUberPage() {
         });
 
         return grouped; 
-
-        } */
+        } 
 
         const carsUber = document.querySelectorAll('ul[data-testid="wcb3-accordion-component.root"] > li');
         const dataCarsUber = [];
 
             [...carsUber].forEach((carInfo) => {
-                const markerName = carInfo.querySelector('[data-testid="accordion-header"]')?.innerText.trim() || '';;
-                
-                const modelTags = carInfo.querySelector('b');
-                modelTags.forEach((b) => {
-                    const modelName = b.innerText.trim();
-                    const dataModelTags = b.parentElement?.innerText.trim() || '';
+                const makerName = carInfo.querySelector('[data-testid="accordion-header"]')?.innerText.trim() || '';
+
+                const divTagsModels = carInfo.querySelector('div[data-testid="markdown-wrapper"]');
+
+                const modelTags = divTagsModels ? divTagsModels.querySelectorAll('li') : [];
+
+                modelTags.forEach((li) => {
+                    const modelName = li.querySelector('b')?.innerText.trim() || '';
+                    const dataModelTags = li.innerText.trim();
                     const detailInfo = dataModelTags.replace(modelName, '').trim();
 
-                    const pĺans = parsePlansGrouped(detailInfo);
+                    const plans = parsePlansGrouped(detailInfo);
 
-                    dataCarsUber.push({ markerName, modelName, plans });
+                    dataCarsUber.push({ makerName, modelName, plans });
                 })
             });
 
@@ -56,6 +68,9 @@ async function handleDynamicUberPage() {
     });
 
     console.log(result);
+
+    await fs.writeFile("uber_cars.json", JSON.stringify(result, null, 2), "utf-8");
+    console.log("Archivo 'uber_cars.json' guardado con éxito.");
 
     await browser.close();
 }

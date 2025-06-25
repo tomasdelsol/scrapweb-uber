@@ -16,10 +16,9 @@ async function handleDynamicUberPage() {
     const headers = await page.$$('div[data-testid="accordion-header"]');
     for (const header of headers) {
     await header.click();
-    await new Promise(resolve => setTimeout(resolve, 100));
-    }
-
     await page.waitForSelector('div[data-testid="markdown-wrapper"] li b');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    }
 
 
 

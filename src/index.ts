@@ -1,16 +1,7 @@
 import puppeteer, { Browser } from "puppeteer";
 import fs from "fs/promises";
-
-type PlanInfo = {
-    modelYear: string;
-    planNames: string[];
-};
-
-type CarInfo = {
-    makerName: string;
-    modelName: string;
-    plans: PlanInfo[];
-};
+import { PlanInfo } from "./entities/PlanInfo";
+import { CarInfo } from "./entities/CarInfo";
 
 async function handleDynamicUberPage(): Promise<void> {
 
@@ -36,9 +27,9 @@ async function handleDynamicUberPage(): Promise<void> {
 
     const result: CarInfo[] = await page.evaluate(() => {
 
-        function parsePlansGrouped(text: string): { modelYear: string; planNames: string[] }[] {
+        function parsePlansGrouped(text: string): { modelYear: string; planNames: string[]} [] {
         const entries = text.split("/").map((e) => e.trim());
-        const grouped: { modelYear: string; planNames: string[] }[] = [];
+        const grouped: { modelYear: string; planNames: string[]} [] = [];
 
         entries.forEach((entry) => {
             const match = entry.match(/(\d{4})\s*\((.*?)\)/);
@@ -61,7 +52,7 @@ async function handleDynamicUberPage(): Promise<void> {
         }[] = [];
 
             [...carsUber].forEach((carInfo) => {
-                const makerName = carInfo.querySelector('[data-testid="accordion-header"]')?.textContent?.trim() || '';
+                const makerName = carInfo.querySelector('[data-testid="accordion-header"]')?.firstChild?.textContent?.trim() || '';
 
                 const divTagsModels = carInfo.querySelector('div[data-testid="markdown-wrapper"]');
 

@@ -19,14 +19,17 @@ export function desagruparPlanes(car: CarInfo): NormalizedCarInfo {
     };
 }
 
-async function modificarPlanesDesagrupados() {
+export async function modificarPlanesDesagrupados() {
     const data = await fs.readFile("modifiedcars.json", "utf-8");
     const jsonData: CarInfo[] = JSON.parse(data);
 
     const modified: NormalizedCarInfo[] = jsonData.map(desagruparPlanes);
 
-    await fs.writeFile("byfycarsdesagrupado.json", JSON.stringify(modified, null, 2));
+    // Envolver el resultado en un objeto con el atributo 'list'
+    const result = {
+        list: modified
+    };
+
+    await fs.writeFile("byfycarsdesagrupado.json", JSON.stringify(result, null, 2));
     console.log("Archivo desagrupado correctamente.");
 }
-
-modificarPlanesDesagrupados();
